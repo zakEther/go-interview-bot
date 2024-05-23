@@ -111,10 +111,11 @@ After completing the test, the bot will display your results and indicate any in
 
 ## Features
 
-[x] Code questions
-[ ] Grade system and questions
-[ ] Question difficulty lvl
-[ ] Multi-answers
+- [x] Code questions
+- [ ] Grade system and questions 
+- [ ] Question difficulty lvl
+- [ ] Multi-answers
+
 
 ## Contribution
 
