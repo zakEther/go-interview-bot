@@ -26,8 +26,8 @@ func (b *Bot) help(request tgbotapi.Update) {
 		"У Вас будет 7 минут для сдачи всех вопросов\n" +
 		"❓<b>Как пройти тест?</b>\n" +
 		"1. Нажимаете на /test\n" +
-		"2. Выбираете ответ (❗️обязательно❗️)\n" +
-		"3. Нажимаете на следующий вопрос\n\n" +
+		"2. Выбираете ответ\n\n" +
+		"3. Если нашли ошибку - пишите @zakether\n\n" +
 		"🌟Удачи"
 
 	msg := tgbotapi.NewMessage(chatID, message)
@@ -70,11 +70,6 @@ func (b *Bot) sendMsg(chatID int64, text string) {
 
 func (b *Bot) handleCallbackQuery(chatID int64, data string, session *entities.Session) {
 	switch {
-	case data == "next_question":
-		session.CurrentQuestionIndex++
-		b.sendQuestion(chatID, *session)
-		b.sendRemainingTime(chatID, session)
-
 	case data == "submit":
 		b.logger.Info("Завершение теста", zap.Int64("userID", session.UserID))
 		score, _, err := b.questionService.GetResult(session, session.UserAnswers)
@@ -103,7 +98,15 @@ func (b *Bot) handleCallbackQuery(chatID int64, data string, session *entities.S
 				if err1 == nil && err2 == nil {
 					b.logger.Info("Ответ получен", zap.Int("questionID", questionID), zap.Int("answerIndex", answerIndex))
 					session.UserAnswers[session.CurrentQuestionIndex] = answerIndex
+					session.CurrentQuestionIndex++
 					b.sessions[chatID] = *session
+
+					if session.CurrentQuestionIndex < len(session.Questions) {
+						b.sendQuestion(chatID, *session)
+						b.sendRemainingTime(chatID, session)
+					} else {
+						b.handleCallbackQuery(chatID, "submit", session)
+					}
 				}
 			}
 		}
@@ -125,7 +128,7 @@ func (b *Bot) handleShowAnswers(update tgbotapi.Update) {
 		if answerIndex != correctAnswerIndex {
 			question := session.Questions[i]
 			result := fmt.Sprintf(
-				"<b>Вопрос:</b> %s\n<b>Ваш ответ:</b> %s\n<b>Правильный ответ:</b> %s\n<b>Объяснение:</b> %s\n",
+				"***Вопрос:*** %s\n***Ваш ответ:*** %s\n***Правильный ответ:*** %s\n***Объяснение:*** %s\n",
 				question.GetText(),
 				question.GetQuestionOptions()[answerIndex],
 				question.GetQuestionOptions()[correctAnswerIndex],
@@ -139,7 +142,7 @@ func (b *Bot) handleShowAnswers(update tgbotapi.Update) {
 	} else {
 		for _, result := range results {
 			msg := tgbotapi.NewMessage(chatID, result)
-			msg.ParseMode = "HTML"
+			msg.ParseMode = tgbotapi.ModeMarkdown
 			b.bot.Send(msg)
 		}
 	}

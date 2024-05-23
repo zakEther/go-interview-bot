@@ -10,7 +10,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func (b *Bot) createKeyboard(question entities.Question, session entities.Session) tgbotapi.InlineKeyboardMarkup {
+func (b *Bot) createKeyboard(question entities.Question) tgbotapi.InlineKeyboardMarkup {
 	var rows [][]tgbotapi.InlineKeyboardButton
 
 	for i, option := range question.QuestionOptions {
@@ -21,20 +21,6 @@ func (b *Bot) createKeyboard(question entities.Question, session entities.Sessio
 	}
 
 	b.logger.Info("Варианты ответов", zap.Strings("options", question.QuestionOptions))
-
-	if session.CurrentQuestionIndex < len(session.Questions)-1 {
-		navigationRow := tgbotapi.NewInlineKeyboardRow(
-			tgbotapi.NewInlineKeyboardButtonData("Следующий вопрос", "next_question"),
-		)
-		rows = append(rows, navigationRow)
-		b.logger.Info("Добавлена кнопка 'Следующий вопрос'")
-	} else {
-		finishRow := tgbotapi.NewInlineKeyboardRow(
-			tgbotapi.NewInlineKeyboardButtonData("Завершить тест", "submit"),
-		)
-		rows = append(rows, finishRow)
-		b.logger.Info("Добавлена кнопка 'Завершить тест'")
-	}
 
 	keyboard := tgbotapi.InlineKeyboardMarkup{
 		InlineKeyboard: rows,
@@ -52,16 +38,13 @@ func (b *Bot) sendQuestion(chatID int64, session entities.Session) {
 
 	currentQuestion := session.Questions[session.CurrentQuestionIndex]
 
-	keyboard := b.createKeyboard(currentQuestion, session)
+	keyboard := b.createKeyboard(currentQuestion)
 
 	var msgText strings.Builder
 	msgText.WriteString(fmt.Sprintf("# %d: %s\n", session.CurrentQuestionIndex+1, currentQuestion.QuestionText))
 
-	for i, option := range currentQuestion.QuestionOptions {
-		msgText.WriteString(fmt.Sprintf("   %d. %s\n", i+1, option))
-	}
-
 	msg := tgbotapi.NewMessage(chatID, msgText.String())
+	msg.ParseMode = tgbotapi.ModeMarkdown
 	msg.ReplyMarkup = &keyboard
 
 	b.logger.Info("Отправка вопроса", zap.Int("questionIndex", session.CurrentQuestionIndex+1))
