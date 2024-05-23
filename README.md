@@ -10,6 +10,7 @@ This project is a Telegram bot that allows users to take an interview by answeri
 - [Running](#running)
 - [Usage](#usage)
 - [Examples](#examples)
+- [Features to implement](#features)
 - [Contribution](#contribution)
 - [License](#license)
 - [Contact](#contact)
@@ -107,6 +108,13 @@ Send the `/test` command to begin the interview. Answer the questions within the
 After completing the test, the bot will display your results and indicate any incorrect answers.
 
 ![Results](media/results.png)
+
+## Features
+
+[x] Code questions
+[ ] Grade system and questions
+[ ] Question difficulty lvl
+[ ] Multi-answers
 
 ## Contribution
 
