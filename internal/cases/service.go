@@ -17,9 +17,9 @@ func NewQuestionService(storage SessionStorage, logger *zap.Logger) *QuestionSer
 	}
 }
 
-func (qs *QuestionService) StartTest(userID int64) (entities.Session, error) {
+func (qs *QuestionService) StartTest(userID int64, grade string) (entities.Session, error) {
 	qs.logger.Info("Создание новой сессии для пользователя", zap.Int64("userID", userID))
-	session, err := qs.storage.CreateSession(userID)
+	session, err := qs.storage.CreateSession(userID, grade)
 	if err != nil {
 		qs.logger.Error("Ошибка при создании сессии", zap.Error(err))
 		return entities.Session{}, err

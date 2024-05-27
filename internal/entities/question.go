@@ -8,6 +8,9 @@ type Question struct {
 	QuestionOptions []string `json:"question_options"`
 	Answer          int      `json:"answer"`
 	Explanation     string   `json:"explanation"`
+	Grade           string   `json:"grade"`
+	CodeOnly        string   `json:"code_only"`
+	SQLOnly         string   `json:"sql_only"`
 }
 
 func (q *Question) MarshalJSON() ([]byte, error) {

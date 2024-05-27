@@ -21,26 +21,16 @@ func New(pg *postgres.Postgres) *PGStorage {
 	}
 }
 
-func (s *PGStorage) CreateQuestion(question *entities.Question) error {
-	_, err := s.DB.Pool.Exec(context.Background(),
-		"INSERT INTO questions (question_id, question_text, question_options, answer, explanation) VALUES ($1, $2, $3, $4, $5)",
-		question.QuestionID, question.QuestionText, pq.Array(question.QuestionOptions), question.Answer, question.Explanation)
-	if err != nil {
-		return fmt.Errorf("failed to create question: %w", err)
-	}
-
-	return nil
-}
-
-func (s *PGStorage) GetRandomQuestions(numQuestions int) ([]entities.Question, error) {
+func (s *PGStorage) GetRandomQuestions(numQuestions int, grade string) ([]entities.Question, error) {
 	query := `
-		SELECT question_id, question_text, question_options, answer, explanation
+		SELECT question_id, question_text, question_options, answer, explanation, grade
 		FROM questions
+		WHERE grade = $1
 		ORDER BY random()
-		LIMIT $1
+		LIMIT $2
 	`
 
-	rows, err := s.DB.Pool.Query(context.Background(), query, numQuestions)
+	rows, err := s.DB.Pool.Query(context.Background(), query, grade, numQuestions)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query random questions: %v", err)
 	}
@@ -50,7 +40,7 @@ func (s *PGStorage) GetRandomQuestions(numQuestions int) ([]entities.Question, e
 	for rows.Next() {
 		var q entities.Question
 		var optionsJSON []byte
-		if err := rows.Scan(&q.QuestionID, &q.QuestionText, &optionsJSON, &q.Answer, &q.Explanation); err != nil {
+		if err := rows.Scan(&q.QuestionID, &q.QuestionText, &optionsJSON, &q.Answer, &q.Explanation, &q.Grade); err != nil {
 			return nil, fmt.Errorf("failed to scan question row: %v", err)
 		}
 
@@ -69,8 +59,8 @@ func (s *PGStorage) GetRandomQuestions(numQuestions int) ([]entities.Question, e
 	return questions, err
 }
 
-func (s *PGStorage) CreateSession(userID int64) (entities.Session, error) {
-	randomQuestions, err := s.GetRandomQuestions(15)
+func (s *PGStorage) CreateSession(userID int64, grade string) (entities.Session, error) {
+	randomQuestions, err := s.GetRandomQuestions(15, grade)
 	if err != nil {
 		return entities.Session{}, fmt.Errorf("failed to get random questions: %v", err)
 	}

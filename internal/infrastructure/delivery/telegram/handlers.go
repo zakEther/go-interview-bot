@@ -37,22 +37,21 @@ func (b *Bot) help(request tgbotapi.Update) {
 
 func (b *Bot) test(request tgbotapi.Update) {
 	chatID := request.Message.Chat.ID
-	userID := int64(request.Message.From.ID)
 
-	session, err := b.questionService.StartTest(userID)
+	keyboard := tgbotapi.NewInlineKeyboardMarkup(
+		tgbotapi.NewInlineKeyboardRow(
+			tgbotapi.NewInlineKeyboardButtonData("Junior", "grade_junior"),
+			tgbotapi.NewInlineKeyboardButtonData("Middle", "grade_middle"),
+		),
+	)
+
+	msg := tgbotapi.NewMessage(chatID, "Выберите уровень сложности вопросов и тип вопросов:")
+	msg.ReplyMarkup = &keyboard
+
+	_, err := b.bot.Send(msg)
 	if err != nil {
-		b.sendMsg(chatID, "Ошибка при начале тестирования.")
-		b.logger.Error("Ошибка при начале тестирования", zap.Error(err))
-		return
+		log.Error().Err(err).Msg("Ошибка при отправке сообщения")
 	}
-
-	session.ExpiredAt = time.Now().Add(7 * time.Minute)
-	session.CurrentQuestionIndex = 0
-	b.sessions[chatID] = session
-
-	b.logger.Info("Отправка первого вопроса")
-	b.sendQuestion(chatID, session)
-	b.sendRemainingTime(chatID, &session)
 }
 
 func (b *Bot) defaultMsg(request tgbotapi.Update) {
