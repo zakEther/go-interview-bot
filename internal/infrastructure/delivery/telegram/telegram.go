@@ -81,6 +81,8 @@ func (b *Bot) handleGradeSelection(chatID int64, userID int64, data string) {
 		grade = "junior"
 	case "grade_middle":
 		grade = "middle"
+	case "grade_sql":
+		grade = "sql"
 	default:
 		b.sendMsg(chatID, "Неверный выбор уровня сложности или типа вопросов.")
 		return

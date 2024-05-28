@@ -42,10 +42,11 @@ func (b *Bot) test(request tgbotapi.Update) {
 		tgbotapi.NewInlineKeyboardRow(
 			tgbotapi.NewInlineKeyboardButtonData("Junior", "grade_junior"),
 			tgbotapi.NewInlineKeyboardButtonData("Middle", "grade_middle"),
+			tgbotapi.NewInlineKeyboardButtonData("SQL", "grade_sql"),
 		),
 	)
 
-	msg := tgbotapi.NewMessage(chatID, "Выберите уровень сложности вопросов и тип вопросов:")
+	msg := tgbotapi.NewMessage(chatID, "Выберите грейд/тему вопросов:")
 	msg.ReplyMarkup = &keyboard
 
 	_, err := b.bot.Send(msg)
@@ -135,6 +136,8 @@ func (b *Bot) handleShowAnswers(update tgbotapi.Update) {
 			results = append(results, result)
 		}
 	}
+	msg := tgbotapi.NewMessage(chatID, "Если Вы нашли сомнительные вопросы, пишите @zakether")
+	defer b.bot.Send(msg)
 
 	if len(results) == 0 {
 		b.sendMsg(chatID, "Поздравляем! Все ответы правильные.")
